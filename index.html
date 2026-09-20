@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#fff8f0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23ffb35d'/%3E%3Cstop offset='1' stop-color='%23ed6b2b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='20' fill='url(%23g)'/%3E%3Cpath d='M13 14v36M13 32h18M31 14v36M43 47V34M51 47V25M59 47V13M40 53h22' fill='none' stroke='white' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+<title>Hensachi Lab — 偏差値計算ツール</title>
+<style>
+:root{
+  --bg:#f7f5f1;
+  --panel:#ffffff;
+  --text:#1d1d1f;
+  --muted:#6e6e73;
+  --line:#e4e1db;
+  --accent:#e9672e;
+  --accent2:#f1a24b;
+  --accent3:#ffe4cf;
+  --good:#2e8b57;
+  --danger:#c84c4c;
+  --shadow:0 14px 40px rgba(50,39,25,.08);
+  --radius:22px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic",Meiryo,sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 15% 5%, rgba(255,213,174,.45), transparent 26%),
+    radial-gradient(circle at 90% 0%, rgba(255,241,215,.75), transparent 23%),
+    var(--bg);
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+a{color:inherit}
+.container{width:min(1200px,calc(100% - 32px));margin:0 auto}
+header{
+  position:sticky;top:0;z-index:10;
+  backdrop-filter:blur(14px);
+  background:rgba(247,245,241,.84);
+  border-bottom:1px solid rgba(228,225,219,.78);
+}
+.nav{
+  min-height:78px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:-.02em}
+.logo{
+  width:44px;height:44px;border-radius:14px;
+  display:grid;place-items:center;
+  background:linear-gradient(145deg,#ffb35d,#ed6b2b);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 10px 22px rgba(237,107,43,.2);
+}
+.logo svg{width:30px;height:30px}
+.brand-text{line-height:1.05}
+.brand-text strong{font-size:16px}
+.brand-text span{display:block;font-size:11px;color:var(--muted);font-weight:700;margin-top:4px;letter-spacing:.08em}
+.tabs{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.tab{
+  border:1px solid transparent;background:transparent;color:var(--muted);
+  padding:9px 13px;border-radius:999px;font-weight:700
+}
+.tab:hover{background:#fff}
+.tab.active{background:#1d1d1f;color:#fff}
+main{padding:34px 0 70px}
+.hero{
+  display:grid;grid-template-columns:1.2fr .8fr;gap:20px;align-items:stretch;
+  margin-bottom:20px;
+}
+.hero-card,.panel{
+  background:rgba(255,255,255,.9);
+  border:1px solid rgba(228,225,219,.9);
+  box-shadow:var(--shadow);
+  border-radius:var(--radius);
+}
+.hero-card{padding:30px}
+.hero-card h1{font-size:clamp(30px,4vw,48px);line-height:1.08;margin:0 0 12px;letter-spacing:-.05em}
+.hero-card p{color:var(--muted);line-height:1.8;max-width:680px;margin:0}
+.formula{
+  margin-top:22px;padding:15px 16px;border-radius:16px;background:#fff7ef;border:1px solid #f7dcc5;
+  font-weight:800;display:flex;flex-wrap:wrap;gap:8px;align-items:center
+}
+.kpi-card{padding:22px;display:flex;flex-direction:column;justify-content:space-between}
+.kpi-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.kpi-label{font-size:13px;color:var(--muted);font-weight:800}
+.big-score{font-size:64px;line-height:1;margin:18px 0 6px;letter-spacing:-.06em}
+.big-score small{font-size:22px;letter-spacing:0}
+.badge{display:inline-flex;padding:7px 10px;border-radius:999px;background:var(--accent3);font-size:12px;font-weight:900}
+.score-meta{color:var(--muted);font-size:13px}
+.grid{display:grid;gap:20px}
+.grid-2{grid-template-columns:1fr 1fr}
+.panel{padding:24px}
+.panel h2{font-size:19px;margin:0 0 18px;letter-spacing:-.03em}
+.panel h3{font-size:15px;margin:22px 0 12px}
+.section-title{display:flex;justify-content:space-between;align-items:center;gap:12px}
+label{display:block;font-size:12px;color:var(--muted);font-weight:800;margin:0 0 7px}
+input,select,textarea{
+  width:100%;border:1px solid var(--line);background:#fff;border-radius:13px;
+  padding:12px 13px;outline:none;transition:.18s
+}
+textarea{min-height:140px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:#f0a270;box-shadow:0 0 0 4px rgba(240,162,112,.17)}
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.row-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.controls{display:flex;gap:9px;flex-wrap:wrap}
+.btn{
+  border:0;border-radius:13px;padding:11px 15px;font-weight:900;
+  background:#1d1d1f;color:#fff
+}
+.btn.secondary{background:#f2f0eb;color:#222}
+.btn.accent{background:linear-gradient(135deg,#ef6d2d,#f39c41)}
+.btn.ghost{background:transparent;color:#555;border:1px solid var(--line)}
+.btn.danger{background:#fff1f1;color:var(--danger);border:1px solid #f0d3d3}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.note{font-size:12px;color:var(--muted);line-height:1.65}
+.result{
+  margin-top:16px;padding:18px;border-radius:18px;
+  background:linear-gradient(145deg,#fffaf5,#fff);
+  border:1px solid #efdfd2
+}
+.result-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 0;border-bottom:1px dashed #eee6de}
+.result-row:last-child{border-bottom:0}
+.result-row span:first-child{color:var(--muted);font-size:13px}
+.result-row strong{font-size:17px}
+.hensachi{font-size:38px!important;letter-spacing:-.04em}
+.pill-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.metric{padding:9px 11px;border-radius:12px;background:#f8f6f2;font-size:12px;color:#555;font-weight:800}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:15px}
+table{width:100%;border-collapse:collapse;min-width:620px}
+th,td{padding:11px 12px;border-bottom:1px solid #eee8df;text-align:left;font-size:13px}
+th{background:#f8f6f1;color:#686868;font-size:11px}
+tr:last-child td{border-bottom:0}
+td.right,th.right{text-align:right}
+.empty{padding:26px;text-align:center;color:var(--muted);font-size:13px}
+canvas{width:100%;height:260px;border-radius:15px;background:#fff}
+.hidden{display:none!important}
+.tag{
+  font-size:11px;font-weight:900;padding:5px 8px;border-radius:999px;background:#f3f0ea;color:#555
+}
+footer{color:#8a8883;text-align:center;font-size:12px;padding:30px 0}
+.toast{
+  position:fixed;right:18px;bottom:18px;z-index:30;max-width:360px;
+  background:#1d1d1f;color:#fff;padding:13px 15px;border-radius:13px;
+  box-shadow:0 14px 30px rgba(0,0,0,.18);opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s
+}
+.toast.show{opacity:1;transform:none}
+@media(max-width:900px){
+  .hero,.grid-2{grid-template-columns:1fr}
+}
+@media(max-width:620px){
+  .container{width:min(100% - 20px,1200px)}
+  .nav{align-items:flex-start;padding:12px 0;flex-direction:column}
+  .tabs{width:100%;justify-content:flex-start}
+  .hero-card,.panel{padding:18px}
+  .row,.row-3{grid-template-columns:1fr}
+  .big-score{font-size:54px}
+}
+
+/* Motion */
+@keyframes riseIn{
+  from{opacity:0;transform:translateY(14px)}
+  to{opacity:1;transform:none}
+}
+@keyframes softPop{
+  0%{transform:scale(.985);opacity:.65}
+  100%{transform:scale(1);opacity:1}
+}
+@keyframes shine{
+  0%{background-position:120% 0}
+  100%{background-position:-120% 0}
+}
+@keyframes pulseDot{
+  0%,100%{transform:scale(1);opacity:.8}
+  50%{transform:scale(1.08);opacity:1}
+}
+main .hero-card, main .panel{animation:riseIn .5s ease both}
+main .hero-card:nth-child(2){animation-delay:.07s}
+main .grid > .panel:nth-child(2){animation-delay:.06s}
+.hero-card .formula{
+  background-image:linear-gradient(110deg,#fff7ef 35%,#fffdf9 50%,#fff7ef 65%);
+  background-size:240% 100%;
+  animation:shine 5s ease-in-out infinite;
+}
+.big-score{animation:softPop .35s ease both}
+.badge{animation:pulseDot 2.8s ease-in-out infinite}
+.tab{transition:transform .18s ease,background .18s ease,color .18s ease}
+.tab:hover{transform:translateY(-1px)}
+.btn{transition:transform .16s ease,box-shadow .16s ease,filter .16s ease}
+.btn:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(50,39,25,.09)}
+.btn:active{transform:translateY(1px) scale(.985)}
+.result{animation:softPop .25s ease both}
+.table-wrap tbody tr{transition:background .16s ease,transform .16s ease}
+.table-wrap tbody tr:hover{background:#fff9f4}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+
+
+.subject-preset.active{background:#1d1d1f;color:#fff;transform:translateY(-1px)}
+
+</style>
+</head>
+<body>
+<header>
+  <div class="container nav">
+    <div class="brand" aria-label="Hensachi Lab">
+      <div class="logo" aria-hidden="true">
+        <!-- Original logo: H + rising distribution bars -->
+        <svg viewBox="0 0 32 32" fill="none">
+          <path d="M6 7v18M6 16h9M15 7v18" stroke="white" stroke-width="3" stroke-linecap="round"/>
+          <path d="M21 22v-5M25 22v-9M29 22V7" stroke="white" stroke-width="3" stroke-linecap="round"/>
+          <path d="M19 25h12" stroke="rgba(255,255,255,.8)" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <strong>Hensachi Lab</strong>
+        <span>偏差値・統計・分析</span>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-tab="single">単体計算</button>
+      <button class="tab" data-tab="batch">一括分析</button>
+      <button class="tab" data-tab="subjects">科目合算</button>
+      <button class="tab" data-tab="reverse">逆算</button>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <section class="hero">
+    <div class="hero-card">
+      <h1>偏差値を、<br>「計算」から「分析」へ。</h1>
+      <p>平均・標準偏差からの通常計算はもちろん、複数データの一括分析、科目ごとの合算、目標偏差値からの逆算まで。テスト結果をローカルで整理できます。</p>
+      <div class="formula">偏差値 = 50 + 10 × (得点 − 平均) ÷ 標準偏差</div>
+    </div>
+    <div class="hero-card kpi-card">
+      <div class="kpi-top">
+        <div>
+          <div class="kpi-label">現在の偏差値</div>
+          <div class="big-score" id="heroScore">—<small></small></div>
+          <div class="score-meta" id="heroMeta">入力すると自動更新</div>
+        </div>
+        <div class="badge">自動計算</div>
+      </div>
+      <div class="pill-row">
+        <div class="metric">100% ブラウザ内処理</div>
+        <div class="metric">データ送信なし</div>
+        <div class="metric">スマホ対応</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Single -->
+  <section id="tab-single" class="tab-content">
+    <div class="grid grid-2">
+      <section class="panel">
+        <div class="section-title"><h2>基本の偏差値計算</h2><span class="tag">Zスコア式</span></div>
+        <div class="row">
+          <div><label for="singleScore">自分の得点</label><input id="singleScore" type="number" step="any" placeholder="例：82"></div>
+          <div><label for="singleMean">平均点</label><input id="singleMean" type="number" step="any" placeholder="例：65"></div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <div><label for="singleSd">標準偏差</label><input id="singleSd" type="number" min="0.000001" step="any" placeholder="例：12.5"></div>
+          <div><label for="singleMax">満点（任意）</label><input id="singleMax" type="number" step="any" placeholder="例：100"></div>
+        </div>
+        <div class="controls" style="margin-top:15px">
+          <button class="btn accent" id="calcSingle">計算する</button>
+          <button class="btn secondary" id="clearSingle">クリア</button>
+        </div>
+        <div class="note" style="margin-top:12px">標準偏差が0の場合、全員の得点が同じなので偏差値は定義できません。</div>
+        <div class="result" id="singleResult">
+          <div class="empty">得点・平均・標準偏差を入力してください。</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>便利な補助計算</h2>
+        <div class="row">
+          <div><label for="singleZ">Z値</label><input id="singleZ" type="number" step="any" placeholder="例：1.25"></div>
+          <div><label>対応する偏差値</label><div class="result" style="margin:0;padding:12px 14px"><strong id="zToHensachi">—</strong></div></div>
+        </div>
+        <h3>偏差値と標準偏差から得点を推定</h3>
+        <div class="row">
+          <div><label for="reverseH">偏差値</label><input id="reverseH" type="number" step="any" placeholder="例：62"></div>
+          <div><label>平均・標準偏差</label><div class="note" style="padding-top:10px">左の「基本計算」の平均・標準偏差を使用します。</div></div>
+        </div>
+        <div class="result">
+          <div class="result-row"><span>推定得点</span><strong id="reversePoint">—</strong></div>
+          <div class="result-row"><span>式</span><strong id="reverseFormula">—</strong></div>
+        </div>
+        <div class="note">これは「得点分布が偏差値式に従う」前提での逆算です。</div>
+      </section>
+    </div>
+  </section>
+
+  <!-- Batch -->
+  <section id="tab-batch" class="tab-content hidden">
+    <div class="grid grid-2">
+      <section class="panel">
+        <div class="section-title"><h2>一括分析</h2><span class="tag">貼り付けOK</span></div>
+        <label for="batchInput">得点データ</label>
+        <textarea id="batchInput" placeholder="例：
+82
+76
+91
+65
+58
+…"></textarea>
+        <div class="row" style="margin-top:12px">
+          <div><label for="batchTarget">自分の得点</label><input id="batchTarget" type="number" step="any" placeholder="例：82"></div>
+          <div><label for="batchLabel">データ名（任意）</label><input id="batchLabel" placeholder="数学テスト1"></div>
+        </div>
+        <div class="controls" style="margin-top:15px">
+          <button class="btn accent" id="analyzeBatch">分析する</button>
+          <button class="btn secondary" id="demoBatch">サンプル</button>
+          <button class="btn ghost" id="clearBatch">クリア</button>
+        </div>
+        <p class="note">スペース・改行・カンマ・タブ区切りを自動認識します。整数だけでなく小数にも対応。</p>
+        <div class="result" id="batchSummary"><div class="empty">得点データを入力してください。</div></div>
+      </section>
+      <section class="panel">
+        <h2>分布</h2>
+        <canvas id="distribution" width="900" height="360"></canvas>
+        <div class="pill-row" id="distributionMeta"></div>
+      </section>
+    </div>
+
+    <section class="panel" style="margin-top:20px">
+      <div class="section-title"><h2>個別偏差値一覧</h2><span class="note">平均・標準偏差は入力データから計算</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>得点</th><th>偏差値</th><th>平均との差</th><th>パーセンタイル（経験的）</th></tr></thead>
+          <tbody id="batchTable"><tr><td colspan="5"><div class="empty">分析結果がここに表示されます。</div></td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+
+  <!-- Subjects -->
+  <section id="tab-subjects" class="tab-content hidden">
+    <section class="panel">
+      <div class="section-title">
+        <div>
+          <h2 style="margin-bottom:5px">科目別・総合偏差値</h2>
+          <div class="note">学校でよく使う5種類に固定。平均・標準偏差・得点だけ入力すれば計算できます。</div>
+        </div>
+      </div>
+
+      <div class="controls" style="margin-bottom:18px" id="subjectPresetControls">
+        <button class="btn secondary subject-preset active" data-preset="five">5教科</button>
+        <button class="btn secondary subject-preset" data-preset="three">3教科</button>
+        <button class="btn secondary subject-preset" data-preset="sub">副教科</button>
+        <button class="btn secondary subject-preset" data-preset="all">全教科</button>
+        <button class="btn secondary subject-preset" data-preset="single">1教科</button>
+        <select id="singleSubjectSelect" class="hidden" style="max-width:180px">
+          <option value="国語">国語</option>
+          <option value="数学">数学</option>
+          <option value="英語">英語</option>
+          <option value="理科">理科</option>
+          <option value="社会">社会</option>
+          <option value="音楽">音楽</option>
+          <option value="美術">美術</option>
+          <option value="保健体育">保健体育</option>
+          <option value="技術・家庭">技術・家庭</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table style="min-width:780px">
+          <thead><tr><th>科目</th><th>得点</th><th>平均</th><th>標準偏差</th><th>満点（任意）</th><th>重み</th></tr></thead>
+          <tbody id="subjectRows"></tbody>
+        </table>
+      </div>
+      <div class="controls" style="margin-top:15px">
+        <button class="btn accent" id="calcSubjects">総合偏差値を計算</button>
+      </div>
+      <div class="result" id="subjectResult"><div class="empty">科目を入力して「総合偏差値を計算」を押してください。</div></div>
+      <p class="note">総合偏差値は、各科目の偏差値を重み付き平均します。1教科モードでは指定科目だけを対象にします。</p>
+    </section>
+  </section>
+
+  <!-- Reverse -->
+  <section id="tab-reverse" class="tab-content hidden">
+    <div class="grid grid-2">
+      <section class="panel">
+        <h2>目標偏差値 → 必要得点</h2>
+        <div class="row">
+          <div><label for="revMean">平均点</label><input id="revMean" type="number" step="any" placeholder="65"></div>
+          <div><label for="revSd">標準偏差</label><input id="revSd" type="number" step="any" placeholder="12"></div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <div><label for="revHensachi">目標偏差値</label><input id="revHensachi" type="number" step="any" placeholder="60"></div>
+          <div><label for="revMax">満点（任意）</label><input id="revMax" type="number" step="any" placeholder="100"></div>
+        </div>
+        <button class="btn accent" style="margin-top:15px" id="calcReverse">必要得点を計算</button>
+        <div class="result" id="reverseResult"><div class="empty">条件を入力してください。</div></div>
+      </section>
+      <section class="panel">
+        <h2>偏差値 → Z値・標準得点</h2>
+        <div class="row">
+          <div><label for="hToZ">偏差値</label><input id="hToZ" type="number" step="any" placeholder="68"></div>
+          <div><label>標準化得点（Z）</label><div class="result" style="margin:0;padding:12px 14px"><strong id="hToZResult">—</strong></div></div>
+        </div>
+        <div class="result">
+          <div class="result-row"><span>目安</span><strong id="hToZText">—</strong></div>
+        </div>
+        <p class="note">Z値は「平均から標準偏差何個分離れているか」を表します。</p>
+      </section>
+    </div>
+
+    <section class="panel" style="margin-top:20px">
+      <div class="section-title"><h2>よく使う偏差値の換算</h2><span class="note">正規分布を仮定した近似</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>偏差値</th><th>Z値</th><th>上側確率（約）</th><th>累積割合（約）</th></tr></thead>
+          <tbody id="conversionTable"></tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+
+  <footer>Hensachi Lab · 偏差値の定義は母集団・標準偏差の計算方法などにより異なる場合があります。</footer>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const $ = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+
+  const fmt = (n, digits=2) => Number.isFinite(n) ? n.toLocaleString('ja-JP',{maximumFractionDigits:digits}) : '—';
+  const mean = a => a.reduce((s,x)=>s+x,0)/a.length;
+  const popSD = a => {
+    if (!a.length) return NaN;
+    const m=mean(a);
+    return Math.sqrt(a.reduce((s,x)=>s+(x-m)**2,0)/a.length);
+  };
+  const normalCDF = z => 0.5*(1+erf(z/Math.SQRT2));
+  const erf = x => {
+    const sign = x<0?-1:1; x=Math.abs(x);
+    const t=1/(1+0.3275911*x);
+    const y=1-((((1.061405429*t-1.453152027)*t+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);
+    return sign*y;
+  };
+  const empiricalPercentile = (score, arr) => {
+    const sorted=[...arr].sort((a,b)=>a-b);
+    if(sorted.length===1) return 100;
+    const rank = sorted.filter(x=>x<=score).length - 0.5;
+    return Math.max(0, Math.min(100, rank/sorted.length*100));
+  };
+  const showToast = msg => {
+    const t=$('#toast'); t.textContent=msg; t.classList.add('show');
+    clearTimeout(showToast.timer); showToast.timer=setTimeout(()=>t.classList.remove('show'),1800);
+  };
+
+  // Tabs
+  $$('.tab').forEach(btn => btn.addEventListener('click',()=>{
+    $$('.tab').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active');
+    $$('.tab-content').forEach(x=>x.classList.add('hidden'));
+    $('#tab-'+btn.dataset.tab).classList.remove('hidden');
+    if(btn.dataset.tab==='batch') requestAnimationFrame(()=>drawDistribution(lastBatch,Number($('#batchTarget').value)));
+    window.scrollTo({top:0,behavior:'smooth'});
+  }));
+
+  // Single calculator
+  function calculateSingle(){
+    const x=Number($('#singleScore').value), m=Number($('#singleMean').value), sd=Number($('#singleSd').value);
+    if(![x,m,sd].every(Number.isFinite) || sd<=0){
+      $('#singleResult').innerHTML='<div class="empty">有効な得点・平均・標準偏差を入力してください。</div>';
+      $('#heroScore').textContent='—'; $('#heroMeta').textContent='入力すると自動更新'; updateReverseHint(); return;
+    }
+    const h=50+10*(x-m)/sd;
+    const z=(x-m)/sd;
+    const max=Number($('#singleMax').value);
+    let maxLine='';
+    if(Number.isFinite(max)&&max>0){
+      maxLine=`<div class="result-row"><span>得点率</span><strong>${fmt(x/max*100,1)}%</strong></div>`;
+    }
+    $('#singleResult').innerHTML=`
+      <div class="result-row"><span>偏差値</span><strong class="hensachi">${fmt(h,2)}</strong></div>
+      <div class="result-row"><span>Z値</span><strong>${fmt(z,3)}</strong></div>
+      <div class="result-row"><span>平均との差</span><strong>${x-m>=0?'+':''}${fmt(x-m)}</strong></div>
+      ${maxLine}
+    `;
+    $('#heroScore').innerHTML=`${fmt(h,2)}<small></small>`;
+    $('#heroMeta').textContent=`得点 ${fmt(x)} / 平均 ${fmt(m)} / 標準偏差 ${fmt(sd)}`;
+    updateReverseHint();
+  }
+  $('#calcSingle').addEventListener('click',calculateSingle);
+  ['singleScore','singleMean','singleSd','singleMax'].forEach(id=>$('#'+id).addEventListener('input',calculateSingle));
+  $('#clearSingle').addEventListener('click',()=>{
+    ['singleScore','singleMean','singleSd','singleMax','reverseH'].forEach(id=>$('#'+id).value='');
+    calculateSingle(); $('#zToHensachi').textContent='—'; $('#reversePoint').textContent='—'; $('#reverseFormula').textContent='—';
+  });
+  function updateReverseHint(){
+    const h=Number($('#reverseH').value), m=Number($('#singleMean').value), sd=Number($('#singleSd').value);
+    if(Number.isFinite(h)&&Number.isFinite(m)&&Number.isFinite(sd)&&sd>0){
+      const x=m+(h-50)*sd/10;
+      $('#reversePoint').textContent=fmt(x,2);
+      $('#reverseFormula').textContent=`${fmt(m)} + (${fmt(h)} − 50) × ${fmt(sd)} ÷ 10`;
+    }else{
+      $('#reversePoint').textContent='—'; $('#reverseFormula').textContent='—';
+    }
+  }
+  $('#reverseH').addEventListener('input',updateReverseHint);
+  $('#singleMean').addEventListener('input',updateReverseHint);
+  $('#singleSd').addEventListener('input',updateReverseHint);
+
+  $('#singleZ').addEventListener('input',()=>{
+    const z=Number($('#singleZ').value);
+    $('#zToHensachi').textContent=Number.isFinite(z)?fmt(50+10*z,2):'—';
+  });
+
+
+  function animateTableRows(selector){
+    $$(selector).forEach((row,i)=>{
+      row.animate(
+        [{opacity:0,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],
+        {duration:220,delay:Math.min(i*18,180),easing:'ease-out',fill:'both'}
+      );
+    });
+  }
+
+  // Batch
+  function parseNumbers(text){
+    return text.trim().split(/[\\s,，、;；]+/).map(Number).filter(Number.isFinite);
+  }
+  let lastBatch=[];
+  let distributionAnimId=0;
+  function drawDistribution(arr,target=NaN){
+    const c=$('#distribution'), ctx=c.getContext('2d');
+    const rect=c.getBoundingClientRect();
+    const W=Math.max(320,Math.floor(rect.width));
+    const H=260;
+    const dpr=Math.max(1,window.devicePixelRatio||1);
+    c.width=Math.floor(W*dpr);
+    c.height=Math.floor(H*dpr);
+    c.style.height=H+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#faf9f6'; ctx.fillRect(0,0,W,H);
+
+    cancelAnimationFrame(distributionAnimId);
+
+    if(!arr.length){
+      ctx.fillStyle='#9b9891';ctx.font='14px sans-serif';ctx.textAlign='center';
+      ctx.fillText('データを入力すると分布が表示されます。',W/2,H/2);
+      return;
+    }
+
+    const min=Math.min(...arr), max=Math.max(...arr), span=Math.max(1,max-min);
+    const bins=Math.max(6,Math.min(18,Math.ceil(Math.sqrt(arr.length)*1.7)));
+    const counts=Array(bins).fill(0);
+    arr.forEach(v=>{
+      let i=Math.floor((v-min)/(span+1e-12)*bins);
+      if(i>=bins)i=bins-1;
+      counts[i]++;
+    });
+    const pad={l:34,r:18,t:28,b:38}, pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+    const bw=pw/bins, ymax=Math.max(...counts,1);
+
+    ctx.strokeStyle='#ddd8cf';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(pad.l,H-pad.b);ctx.lineTo(W-pad.r,H-pad.b);ctx.stroke();
+
+    const drawBars=(progress)=>{
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle='#faf9f6'; ctx.fillRect(0,0,W,H);
+      ctx.strokeStyle='#ddd8cf';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(pad.l,H-pad.b);ctx.lineTo(W-pad.r,H-pad.b);ctx.stroke();
+
+      counts.forEach((count,i)=>{
+        const fullH=count/ymax*(ph-18);
+        const barH=fullH*progress;
+        const x=pad.l+i*bw+3, y=H-pad.b-barH;
+        const grad=ctx.createLinearGradient(0,y,0,H-pad.b);
+        grad.addColorStop(0,'#ef6d2d');grad.addColorStop(1,'#ffd7ba');
+        ctx.fillStyle=grad;
+        ctx.fillRect(x,y,Math.max(2,bw-6),barH);
+      });
+
+      ctx.fillStyle='#77736c';ctx.font='11px sans-serif';ctx.textAlign='center';
+      for(let i=0;i<=4;i++){
+        const x=pad.l+pw*i/4;
+        const val=min+span*i/4;
+        ctx.fillText(fmt(val,1),x,H-pad.b+18);
+      }
+
+      if(Number.isFinite(target)){
+        const tx=pad.l+pw*Math.max(0,Math.min(1,(target-min)/span));
+        ctx.strokeStyle='#1d1d1f';ctx.lineWidth=2;ctx.setLineDash([5,5]);
+        ctx.beginPath();ctx.moveTo(tx,pad.t);ctx.lineTo(tx,H-pad.b);ctx.stroke();ctx.setLineDash([]);
+        ctx.fillStyle='#1d1d1f';ctx.font='bold 11px sans-serif';
+        ctx.fillText('自分',tx,pad.t-7);
+      }
+    };
+
+    const start=performance.now(), duration=500;
+    const ease=t=>1-Math.pow(1-t,3);
+    function frame(now){
+      const p=Math.min(1,(now-start)/duration);
+      drawBars(ease(p));
+      if(p<1) distributionAnimId=requestAnimationFrame(frame);
+    }
+    distributionAnimId=requestAnimationFrame(frame);
+  }
+
+  function analyzeBatch(){
+    const arr=parseNumbers($('#batchInput').value);
+    if(arr.length<2){$('#batchSummary').innerHTML='<div class="empty">2個以上の得点を入力してください。</div>';return;}
+    lastBatch=arr;
+    const m=mean(arr), sd=popSD(arr), target=Number($('#batchTarget').value);
+    let targetHtml='';
+    if(Number.isFinite(target)){
+      const h=sd>0?50+10*(target-m)/sd:NaN;
+      const pct=empiricalPercentile(target,arr);
+      targetHtml=`
+        <div class="result-row"><span>自分の偏差値</span><strong class="hensachi">${fmt(h,2)}</strong></div>
+        <div class="result-row"><span>経験的パーセンタイル</span><strong>${fmt(pct,1)}%</strong></div>`;
+      $('#heroScore').innerHTML=`${fmt(h,2)}<small></small>`;
+      $('#heroMeta').textContent=`一括分析 · ${arr.length}人分`;
+    }
+    const sorted=[...arr].sort((a,b)=>a-b);
+    const median=arr.length%2?sorted[(arr.length-1)/2]:(sorted[arr.length/2-1]+sorted[arr.length/2])/2;
+    $('#batchSummary').innerHTML=`
+      <div class="result-row"><span>人数</span><strong>${arr.length.toLocaleString()} 人</strong></div>
+      <div class="result-row"><span>平均</span><strong>${fmt(m,3)}</strong></div>
+      <div class="result-row"><span>標準偏差（母標準偏差）</span><strong>${fmt(sd,3)}</strong></div>
+      <div class="result-row"><span>最高 / 最低</span><strong>${fmt(Math.max(...arr))} / ${fmt(Math.min(...arr))}</strong></div>
+      <div class="result-row"><span>中央値</span><strong>${fmt(median,2)}</strong></div>
+      ${targetHtml}`;
+    const rows=arr.map((v,i)=>{
+      const h=sd>0?50+10*(v-m)/sd:NaN;
+      return `<tr><td>${i+1}</td><td>${fmt(v,2)}</td><td><strong>${fmt(h,2)}</strong></td><td>${v-m>=0?'+':''}${fmt(v-m,2)}</td><td>${fmt(empiricalPercentile(v,arr),1)}%</td></tr>`;
+    }).join('');
+    $('#batchTable').innerHTML=rows;
+    animateTableRows('#batchTable tr');
+    $('#distributionMeta').innerHTML=`<div class="metric">平均 ${fmt(m,2)}</div><div class="metric">SD ${fmt(sd,2)}</div><div class="metric">n=${arr.length}</div>`;
+    drawDistribution(arr,target);
+  }
+  $('#analyzeBatch').addEventListener('click',analyzeBatch);
+  $('#demoBatch').addEventListener('click',()=>{
+    const demo=[42,51,58,61,64,67,69,72,73,74,76,77,79,81,82,83,85,87,88,92,95];
+    $('#batchInput').value=demo.join('\\n'); $('#batchTarget').value=82; analyzeBatch(); showToast('サンプルデータを読み込みました');
+  });
+  $('#clearBatch').addEventListener('click',()=>{
+    $('#batchInput').value='';$('#batchTarget').value='';$('#batchLabel').value='';
+    $('#batchSummary').innerHTML='<div class="empty">得点データを入力してください。</div>';
+    $('#batchTable').innerHTML='<tr><td colspan="5"><div class="empty">分析結果がここに表示されます。</div></td></tr>';
+    $('#distributionMeta').innerHTML=''; drawDistribution([]);
+  });
+  window.addEventListener('resize',()=>drawDistribution(lastBatch,Number($('#batchTarget').value)));
+
+  // Subjects
+  const SUBJECT_SETS = {
+    five: ['国語','数学','英語','理科','社会'],
+    three: ['国語','数学','英語'],
+    sub: ['音楽','美術','保健体育','技術・家庭'],
+    all: ['国語','数学','英語','理科','社会','音楽','美術','保健体育','技術・家庭']
+  };
+  const subjectDefaults = {
+    '国語': {score:'',mean:'',sd:'',max:'',weight:1},
+    '数学': {score:'',mean:'',sd:'',max:'',weight:1},
+    '英語': {score:'',mean:'',sd:'',max:'',weight:1},
+    '理科': {score:'',mean:'',sd:'',max:'',weight:1},
+    '社会': {score:'',mean:'',sd:'',max:'',weight:1},
+    '音楽': {score:'',mean:'',sd:'',max:'',weight:1},
+    '美術': {score:'',mean:'',sd:'',max:'',weight:1},
+    '保健体育': {score:'',mean:'',sd:'',max:'',weight:1},
+    '技術・家庭': {score:'',mean:'',sd:'',max:'',weight:1}
+  };
+  let currentSubjectPreset='five';
+
+  function addSubjectRow(name, data=subjectDefaults[name]||{score:'',mean:'',sd:'',max:'',weight:1}){
+    const tr=document.createElement('tr');
+    tr.dataset.subject=name;
+    tr.innerHTML=`
+      <td><strong>${name}</strong></td>
+      <td><input class="s-score" type="number" step="any" placeholder="—" value="${data.score}"></td>
+      <td><input class="s-mean" type="number" step="any" placeholder="—" value="${data.mean}"></td>
+      <td><input class="s-sd" type="number" step="any" min="0.000001" placeholder="—" value="${data.sd}"></td>
+      <td><input class="s-max" type="number" step="any" placeholder="任意" value="${data.max}"></td>
+      <td><input class="s-weight" type="number" min="0" step="any" value="${data.weight}"></td>
+    `;
+    $('#subjectRows').appendChild(tr);
+  }
+
+  function renderSubjects(){
+    const select=$('#singleSubjectSelect');
+    select.classList.toggle('hidden',currentSubjectPreset!=='single');
+    let names = currentSubjectPreset==='single' ? [select.value] : SUBJECT_SETS[currentSubjectPreset];
+    $('#subjectRows').innerHTML='';
+    names.forEach(name=>addSubjectRow(name));
+    $('#subjectResult').innerHTML='<div class="empty">科目を入力して「総合偏差値を計算」を押してください。</div>';
+  }
+
+  $$('.subject-preset').forEach(btn => btn.addEventListener('click',()=>{
+    $$('.subject-preset').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active');
+    currentSubjectPreset=btn.dataset.preset;
+    renderSubjects();
+  }));
+  $('#singleSubjectSelect').addEventListener('change',()=>{
+    if(currentSubjectPreset==='single') renderSubjects();
+  });
+
+  $('#calcSubjects').addEventListener('click',()=>{
+    const rows=$$('#subjectRows tr');
+    let sum=0, wsum=0, ok=true, html='', used=0;
+    rows.forEach((tr)=>{
+      const name=tr.dataset.subject;
+      const score=Number($('.s-score',tr).value), m=Number($('.s-mean',tr).value), sd=Number($('.s-sd',tr).value), w=Number($('.s-weight',tr).value);
+      if(![score,m,sd,w].every(Number.isFinite)||sd<=0||w<0){ ok=false; return; }
+      const z=(score-m)/sd, h=50+10*z;
+      sum+=h*w; wsum+=w; used++;
+      html+=`<div class="result-row"><span>${name} · 偏差値</span><strong>${fmt(h,2)}</strong></div>`;
+    });
+    if(!ok || used===0 || wsum<=0){
+      $('#subjectResult').innerHTML='<div class="empty">対象科目の得点・平均・標準偏差・重みを正しく入力してください。</div>';
+      return;
+    }
+    const total=sum/wsum;
+    const modeLabel = currentSubjectPreset==='five'?'5教科':currentSubjectPreset==='three'?'3教科':currentSubjectPreset==='sub'?'副教科':currentSubjectPreset==='all'?'全教科':`1教科（${$('#singleSubjectSelect').value}）`;
+    $('#subjectResult').innerHTML=`<div class="result-row"><span>${modeLabel} · 総合偏差値</span><strong class="hensachi">${fmt(total,2)}</strong></div>${html}`;
+    $('#heroScore').innerHTML=`${fmt(total,2)}<small></small>`;
+    $('#heroMeta').textContent=`${modeLabel} · ${used}科目`;
+    requestAnimationFrame(()=>{
+      const result=$('#subjectResult');
+      result.animate([{opacity:.55,transform:'translateY(6px)'},{opacity:1,transform:'translateY(0)'}],{duration:260,easing:'ease-out'});
+    });
+  });
+
+  renderSubjects();
+
+  // Reverse
+  $('#calcReverse').addEventListener('click',()=>{
+    const m=Number($('#revMean').value), sd=Number($('#revSd').value), h=Number($('#revHensachi').value), max=Number($('#revMax').value);
+    if(![m,sd,h].every(Number.isFinite)||sd<=0){$('#reverseResult').innerHTML='<div class="empty">平均・標準偏差・目標偏差値を正しく入力してください。</div>';return;}
+    const x=m+(h-50)*sd/10;
+    let msg=`<div class="result-row"><span>必要な得点</span><strong class="hensachi">${fmt(x,2)}</strong></div>`;
+    msg+=`<div class="result-row"><span>平均との差</span><strong>${x-m>=0?'+':''}${fmt(x-m,2)}</strong></div>`;
+    if(Number.isFinite(max)&&max>0) msg+=`<div class="result-row"><span>満点に対する割合</span><strong>${fmt(x/max*100,1)}%</strong></div>`;
+    if(Number.isFinite(max)&&max>0 && (x<0||x>max)) msg+=`<div class="note" style="margin-top:10px">この条件では、目標偏差値に必要な得点が満点範囲を超えています。</div>`;
+    $('#reverseResult').innerHTML=msg;
+  });
+  $('#hToZ').addEventListener('input',()=>{
+    const h=Number($('#hToZ').value);
+    if(!Number.isFinite(h)){$('#hToZResult').textContent='—';$('#hToZText').textContent='—';return;}
+    const z=(h-50)/10, pct=normalCDF(z)*100;
+    $('#hToZResult').textContent=fmt(z,3);
+    $('#hToZText').textContent=`正規分布なら累積 約${fmt(pct,2)}%`;
+  });
+
+  [40,45,50,55,60,65,70,75,80].forEach(h=>{
+    const z=(h-50)/10, c=normalCDF(z);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><strong>${h}</strong></td><td>${fmt(z,2)}</td><td>${fmt((1-c)*100,2)}%</td><td>${fmt(c*100,2)}%</td>`;
+    $('#conversionTable').appendChild(tr);
+  });
+
+  // Initial canvas
+  drawDistribution([]);
+
+})();
+</script>
+</body>
+</html>
