@@ -114,6 +114,21 @@ input:focus,select:focus,textarea:focus{border-color:#f0a270;box-shadow:0 0 0 4p
 .btn.danger{background:#fff1f1;color:var(--danger);border:1px solid #f0d3d3}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .note{font-size:12px;color:var(--muted);line-height:1.65}
+.input-guide{
+  margin:0 0 14px;
+  padding:15px 16px;
+  border:1px solid #f0dfcf;
+  background:linear-gradient(145deg,#fffaf5,#fff);
+  border-radius:15px;
+}
+.input-guide strong{display:block;font-size:13px;margin-bottom:7px}
+.input-guide p{margin:4px 0;line-height:1.6}
+.guide-example{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 8px}
+.guide-example span{
+  min-width:48px;text-align:center;padding:7px 9px;border-radius:10px;
+  background:#f6f1ea;font-weight:900;font-size:13px;
+}
+.field-help{font-size:11px;color:#8a8883;margin-top:6px;line-height:1.45}
 .result{
   margin-top:16px;padding:18px;border-radius:18px;
   background:linear-gradient(145deg,#fffaf5,#fff);
@@ -198,6 +213,28 @@ main .grid > .panel:nth-child(2){animation-delay:.06s}
 
 
 .subject-preset.active{background:#1d1d1f;color:#fff;transform:translateY(-1px)}
+
+
+.add-score-box{margin-bottom:14px}
+.add-score-row{display:grid;grid-template-columns:1fr auto;gap:9px}
+.add-score-row .btn{white-space:nowrap}
+.score-list-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:15px 0 8px}
+.score-list-head label{font-size:12px;color:var(--muted);font-weight:800}
+.score-list-head label span{color:#222;margin-left:5px}
+.score-list{border:1px solid var(--line);border-radius:15px;padding:8px;min-height:74px;max-height:210px;overflow:auto;background:#faf9f6}
+.score-item{display:grid;grid-template-columns:36px 1fr auto;align-items:center;gap:8px;padding:8px 9px;background:#fff;border-bottom:1px solid #eee8df}
+.score-item:first-child{border-radius:11px 11px 0 0}
+.score-item:last-child{border-bottom:0;border-radius:0 0 11px 11px}
+.score-index{font-size:11px;color:#9a968e;font-weight:800;text-align:center}
+.score-value{font-size:14px;font-weight:900}
+.score-remove{border:0;background:transparent;color:#999;padding:3px 7px;border-radius:8px;font-weight:900}
+.score-remove:hover{background:#fff1f1;color:var(--danger)}
+.paste-box{margin-top:14px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.paste-box summary{padding:12px 14px;font-size:12px;font-weight:900;cursor:pointer;color:#555}
+.paste-inner{padding:0 14px 14px}
+.paste-inner textarea{min-height:110px}
+.paste-example{font-size:11px;color:#77736c;line-height:1.55;margin-top:7px}
+@media(max-width:620px){.add-score-row{grid-template-columns:1fr}.score-list-head{align-items:flex-start;flex-direction:column}}
 
 </style>
 </head>
@@ -298,36 +335,77 @@ main .grid > .panel:nth-child(2){animation-delay:.06s}
   <section id="tab-batch" class="tab-content hidden">
     <div class="grid grid-2">
       <section class="panel">
-        <div class="section-title"><h2>一括分析</h2><span class="tag">貼り付けOK</span></div>
-        <label for="batchInput">得点データ</label>
-        <textarea id="batchInput" placeholder="例：
-82
+        <div class="section-title"><h2>一括分析</h2><span class="tag">1点ずつ入力</span></div>
+
+        <div class="input-guide">
+          <strong>まずは「得点を追加」を使ってください</strong>
+          <p>生徒1人につき、得点を1つ入力して <b>＋追加</b>。</p>
+          <p class="note">例：82 → 追加、76 → 追加、91 → 追加…</p>
+        </div>
+
+        <div class="add-score-box">
+          <label for="batchEntry">得点</label>
+          <div class="add-score-row">
+            <input id="batchEntry" type="number" step="any" inputmode="decimal" placeholder="例：82">
+            <button class="btn accent" id="addBatchScore" type="button">＋ 追加</button>
+          </div>
+          <div class="field-help">Enterキーでも追加できます。</div>
+        </div>
+
+        <div class="score-list-head">
+          <label style="margin:0">現在のデータ <span id="batchCountLabel">0人</span></label>
+          <button class="btn ghost" id="clearBatchScores" type="button">入力だけ消す</button>
+        </div>
+        <div id="batchScoresList" class="score-list">
+          <div class="empty">まだ得点がありません。</div>
+        </div>
+
+        <details class="paste-box">
+          <summary>まとめて貼り付ける</summary>
+          <div class="paste-inner">
+            <label for="batchInput">得点データ</label>
+            <textarea id="batchInput" placeholder="82
 76
 91
 65
-58
-…"></textarea>
-        <div class="row" style="margin-top:12px">
-          <div><label for="batchTarget">自分の得点</label><input id="batchTarget" type="number" step="any" placeholder="例：82"></div>
-          <div><label for="batchLabel">データ名（任意）</label><input id="batchLabel" placeholder="数学テスト1"></div>
+58"></textarea>
+            <div class="paste-example"><b>おすすめ：</b>1行に1人分 → 82 ↵ 76 ↵ 91 ↵ …</div>
+            <div class="controls" style="margin-top:10px">
+              <button class="btn secondary" id="appendBatchPaste" type="button">このデータを追加</button>
+            </div>
+          </div>
+        </details>
+
+        <div class="row" style="margin-top:14px">
+          <div>
+            <label for="batchTarget">自分の得点（任意）</label>
+            <input id="batchTarget" type="number" step="any" placeholder="例：82">
+            <div class="field-help">入力すると「自分の偏差値」も表示します。</div>
+          </div>
+          <div>
+            <label for="batchLabel">テスト名（任意）</label>
+            <input id="batchLabel" placeholder="例：数学・第3回">
+          </div>
         </div>
+
         <div class="controls" style="margin-top:15px">
           <button class="btn accent" id="analyzeBatch">分析する</button>
-          <button class="btn secondary" id="demoBatch">サンプル</button>
-          <button class="btn ghost" id="clearBatch">クリア</button>
+          <button class="btn secondary" id="demoBatch">入力例を見る</button>
+          <button class="btn ghost" id="clearBatch">全部クリア</button>
         </div>
-        <p class="note">スペース・改行・カンマ・タブ区切りを自動認識します。整数だけでなく小数にも対応。</p>
-        <div class="result" id="batchSummary"><div class="empty">得点データを入力してください。</div></div>
+
+        <div class="result" id="batchSummary"><div class="empty">得点を追加して「分析する」を押してください。</div></div>
       </section>
+
       <section class="panel">
-        <h2>分布</h2>
+        <div class="section-title"><h2>得点分布</h2><span class="note">最低点～最高点の範囲で表示</span></div>
         <canvas id="distribution" width="900" height="360"></canvas>
         <div class="pill-row" id="distributionMeta"></div>
       </section>
     </div>
 
     <section class="panel" style="margin-top:20px">
-      <div class="section-title"><h2>個別偏差値一覧</h2><span class="note">平均・標準偏差は入力データから計算</span></div>
+      <div class="section-title"><h2>個別偏差値一覧</h2><span class="note">入力データから平均・標準偏差を計算</span></div>
       <div class="table-wrap">
         <table>
           <thead><tr><th>#</th><th>得点</th><th>偏差値</th><th>平均との差</th><th>パーセンタイル（経験的）</th></tr></thead>
@@ -368,7 +446,7 @@ main .grid > .panel:nth-child(2){animation-delay:.06s}
 
       <div class="table-wrap">
         <table style="min-width:780px">
-          <thead><tr><th>科目</th><th>得点</th><th>平均</th><th>標準偏差</th><th>満点（任意）</th><th>重み</th></tr></thead>
+          <thead><tr><th>科目</th><th>得点</th><th>平均</th><th>標準偏差</th><th>満点（任意）</th><th>重み <span title="総合偏差値への影響度。普通は全部1でOKです。">ⓘ</span></th></tr></thead>
           <tbody id="subjectRows"></tbody>
         </table>
       </div>
@@ -376,7 +454,14 @@ main .grid > .panel:nth-child(2){animation-delay:.06s}
         <button class="btn accent" id="calcSubjects">総合偏差値を計算</button>
       </div>
       <div class="result" id="subjectResult"><div class="empty">科目を入力して「総合偏差値を計算」を押してください。</div></div>
-      <p class="note">総合偏差値は、各科目の偏差値を重み付き平均します。1教科モードでは指定科目だけを対象にします。</p>
+      <div class="result" style="margin-top:14px">
+  <div class="result-row"><span>「重み」って？</span><strong>科目の影響度</strong></div>
+  <div class="note" style="padding-top:6px">
+    たとえば国語が1、数学が2なら、数学を国語の2倍の強さで総合偏差値に反映します。
+    <b>普通の5教科・3教科・全教科では、全部「1」でOKです。</b>
+  </div>
+</div>
+<p class="note">総合偏差値は、各科目の偏差値を重み付き平均します。1教科モードでは指定科目だけを対象にします。</p>
     </section>
   </section>
 
@@ -524,93 +609,192 @@ main .grid > .panel:nth-child(2){animation-delay:.06s}
   }
 
   // Batch
-  function parseNumbers(text){
-    return text.trim().split(/[\\s,，、;；]+/).map(Number).filter(Number.isFinite);
-  }
+  const batchScores=[];
   let lastBatch=[];
   let distributionAnimId=0;
+
+  function parseNumbers(text){
+    const source=String(text||'')
+      .replace(/\r\n?/g,'\n')
+      .replace(/[，、；;]/g,' ');
+    return source.split(/[\s,]+/)
+      .map(s=>s.trim())
+      .filter(Boolean)
+      .map(Number)
+      .filter(Number.isFinite);
+  }
+
+  function renderBatchScores(){
+    const box=$('#batchScoresList');
+    $('#batchCountLabel').textContent=`${batchScores.length.toLocaleString()}人`;
+    if(!batchScores.length){
+      box.innerHTML='<div class="empty">まだ得点がありません。</div>';
+      return;
+    }
+    box.innerHTML=batchScores.map((score,i)=>`
+      <div class="score-item">
+        <span class="score-index">${i+1}</span>
+        <span class="score-value">${fmt(score,2)} 点</span>
+        <button class="score-remove" type="button" data-index="${i}" aria-label="${i+1}人目を削除">削除</button>
+      </div>`).join('');
+    $$('.score-remove',box).forEach(btn=>btn.addEventListener('click',()=>{
+      const i=Number(btn.dataset.index);
+      batchScores.splice(i,1);
+      renderBatchScores();
+    }));
+  }
+
+  function addBatchScoreFromInput(){
+    const input=$('#batchEntry');
+    const value=Number(input.value);
+    if(!Number.isFinite(value)){
+      showToast('数字を入力してください');
+      input.focus();
+      return;
+    }
+    batchScores.push(value);
+    input.value='';
+    renderBatchScores();
+    input.focus();
+  }
+
+  $('#addBatchScore').addEventListener('click',addBatchScoreFromInput);
+  $('#batchEntry').addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();addBatchScoreFromInput();}
+  });
+  $('#clearBatchScores').addEventListener('click',()=>{
+    batchScores.length=0;
+    renderBatchScores();
+  });
+
+  $('#appendBatchPaste').addEventListener('click',()=>{
+    const values=parseNumbers($('#batchInput').value);
+    if(!values.length){showToast('貼り付け欄に数字がありません');return;}
+    batchScores.push(...values);
+    $('#batchInput').value='';
+    renderBatchScores();
+    showToast(`${values.length}人分を追加しました`);
+  });
+
   function drawDistribution(arr,target=NaN){
     const c=$('#distribution'), ctx=c.getContext('2d');
     const rect=c.getBoundingClientRect();
-    const W=Math.max(320,Math.floor(rect.width));
-    const H=260;
+    const W=Math.max(320,Math.floor(rect.width||620));
+    const H=280;
     const dpr=Math.max(1,window.devicePixelRatio||1);
     c.width=Math.floor(W*dpr);
     c.height=Math.floor(H*dpr);
     c.style.height=H+'px';
     ctx.setTransform(dpr,0,0,dpr,0,0);
     ctx.clearRect(0,0,W,H);
-    ctx.fillStyle='#faf9f6'; ctx.fillRect(0,0,W,H);
-
+    ctx.fillStyle='#faf9f6';
+    ctx.fillRect(0,0,W,H);
     cancelAnimationFrame(distributionAnimId);
 
-    if(!arr.length){
+    if(!Array.isArray(arr)||arr.length===0){
       ctx.fillStyle='#9b9891';ctx.font='14px sans-serif';ctx.textAlign='center';
-      ctx.fillText('データを入力すると分布が表示されます。',W/2,H/2);
+      ctx.fillText('得点を追加すると分布が表示されます。',W/2,H/2);
       return;
     }
 
-    const min=Math.min(...arr), max=Math.max(...arr), span=Math.max(1,max-min);
-    const bins=Math.max(6,Math.min(18,Math.ceil(Math.sqrt(arr.length)*1.7)));
+    const min=Math.min(...arr);
+    const max=Math.max(...arr);
+    const rawRange=max-min;
+    const range=rawRange===0?1:rawRange;
+    const pad={l:42,r:20,t:30,b:46};
+    const pw=Math.max(120,W-pad.l-pad.r);
+    const ph=Math.max(120,H-pad.t-pad.b);
+
+    let bins;
+    if(arr.length<8) bins=Math.min(6,Math.max(3,arr.length));
+    else bins=Math.min(16,Math.max(6,Math.ceil(Math.sqrt(arr.length)*1.6)));
+    if(rawRange===0) bins=1;
+
     const counts=Array(bins).fill(0);
-    arr.forEach(v=>{
-      let i=Math.floor((v-min)/(span+1e-12)*bins);
-      if(i>=bins)i=bins-1;
-      counts[i]++;
-    });
-    const pad={l:34,r:18,t:28,b:38}, pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
-    const bw=pw/bins, ymax=Math.max(...counts,1);
+    if(rawRange===0){
+      counts[0]=arr.length;
+    }else{
+      arr.forEach(v=>{
+        const ratio=(v-min)/range;
+        let i=Math.floor(ratio*bins);
+        if(i<0)i=0;
+        if(i>=bins)i=bins-1;
+        counts[i]++;
+      });
+    }
+    const ymax=Math.max(...counts,1);
+    const bw=pw/bins;
+    const baseY=H-pad.b;
 
-    ctx.strokeStyle='#ddd8cf';ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(pad.l,H-pad.b);ctx.lineTo(W-pad.r,H-pad.b);ctx.stroke();
-
-    const drawBars=(progress)=>{
+    function draw(progress){
       ctx.clearRect(0,0,W,H);
-      ctx.fillStyle='#faf9f6'; ctx.fillRect(0,0,W,H);
-      ctx.strokeStyle='#ddd8cf';ctx.lineWidth=1;
-      ctx.beginPath();ctx.moveTo(pad.l,H-pad.b);ctx.lineTo(W-pad.r,H-pad.b);ctx.stroke();
+      ctx.fillStyle='#faf9f6';ctx.fillRect(0,0,W,H);
+
+      // grid
+      ctx.strokeStyle='#e5e0d8';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(pad.l,baseY);ctx.lineTo(W-pad.r,baseY);ctx.stroke();
+      for(let i=1;i<=3;i++){
+        const y=pad.t+ph*(i/4);
+        ctx.strokeStyle='#eee9e2';
+        ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
+      }
 
       counts.forEach((count,i)=>{
-        const fullH=count/ymax*(ph-18);
+        const fullH=(count/ymax)*(ph-16);
         const barH=fullH*progress;
-        const x=pad.l+i*bw+3, y=H-pad.b-barH;
-        const grad=ctx.createLinearGradient(0,y,0,H-pad.b);
-        grad.addColorStop(0,'#ef6d2d');grad.addColorStop(1,'#ffd7ba');
+        const x=pad.l+i*bw+Math.min(4,bw*.08);
+        const width=Math.max(3,bw-Math.min(8,bw*.16));
+        const y=baseY-barH;
+        const grad=ctx.createLinearGradient(0,y,0,baseY);
+        grad.addColorStop(0,'#ef6d2d');
+        grad.addColorStop(1,'#ffd7ba');
         ctx.fillStyle=grad;
-        ctx.fillRect(x,y,Math.max(2,bw-6),barH);
+        ctx.fillRect(x,y,width,barH);
       });
 
       ctx.fillStyle='#77736c';ctx.font='11px sans-serif';ctx.textAlign='center';
-      for(let i=0;i<=4;i++){
-        const x=pad.l+pw*i/4;
-        const val=min+span*i/4;
-        ctx.fillText(fmt(val,1),x,H-pad.b+18);
-      }
+      const labels=rawRange===0 ? [min] : [0,1,2,3,4].map(i=>min+range*i/4);
+      labels.forEach((value,i)=>{
+        const x=rawRange===0 ? pad.l+pw/2 : pad.l+pw*i/4;
+        ctx.fillText(fmt(value,1),x,H-pad.b+22);
+      });
+
+      ctx.textAlign='left';ctx.font='bold 11px sans-serif';ctx.fillStyle='#77736c';
+      ctx.fillText(`最低 ${fmt(min,2)}`,pad.l,14);
+      ctx.textAlign='right';
+      ctx.fillText(`最高 ${fmt(max,2)}`,W-pad.r,14);
 
       if(Number.isFinite(target)){
-        const tx=pad.l+pw*Math.max(0,Math.min(1,(target-min)/span));
+        let tx;
+        if(rawRange===0) tx=pad.l+pw/2;
+        else tx=pad.l+pw*Math.max(0,Math.min(1,(target-min)/range));
         ctx.strokeStyle='#1d1d1f';ctx.lineWidth=2;ctx.setLineDash([5,5]);
-        ctx.beginPath();ctx.moveTo(tx,pad.t);ctx.lineTo(tx,H-pad.b);ctx.stroke();ctx.setLineDash([]);
-        ctx.fillStyle='#1d1d1f';ctx.font='bold 11px sans-serif';
+        ctx.beginPath();ctx.moveTo(tx,pad.t);ctx.lineTo(tx,baseY);ctx.stroke();ctx.setLineDash([]);
+        ctx.fillStyle='#1d1d1f';ctx.font='bold 11px sans-serif';ctx.textAlign='center';
         ctx.fillText('自分',tx,pad.t-7);
       }
-    };
+    }
 
-    const start=performance.now(), duration=500;
+    const start=performance.now(),duration=480;
     const ease=t=>1-Math.pow(1-t,3);
     function frame(now){
       const p=Math.min(1,(now-start)/duration);
-      drawBars(ease(p));
-      if(p<1) distributionAnimId=requestAnimationFrame(frame);
+      draw(ease(p));
+      if(p<1)distributionAnimId=requestAnimationFrame(frame);
     }
     distributionAnimId=requestAnimationFrame(frame);
   }
 
   function analyzeBatch(){
-    const arr=parseNumbers($('#batchInput').value);
-    if(arr.length<2){$('#batchSummary').innerHTML='<div class="empty">2個以上の得点を入力してください。</div>';return;}
+    const arr=[...batchScores];
+    if(arr.length<2){
+      $('#batchSummary').innerHTML='<div class="empty">最低2人分の得点を追加してください。</div>';
+      lastBatch=[];drawDistribution([]);return;
+    }
     lastBatch=arr;
     const m=mean(arr), sd=popSD(arr), target=Number($('#batchTarget').value);
+    const sorted=[...arr].sort((a,b)=>a-b);
+    const median=sorted.length%2?sorted[(sorted.length-1)/2]:(sorted[sorted.length/2-1]+sorted[sorted.length/2])/2;
     let targetHtml='';
     if(Number.isFinite(target)){
       const h=sd>0?50+10*(target-m)/sd:NaN;
@@ -620,37 +804,50 @@ main .grid > .panel:nth-child(2){animation-delay:.06s}
         <div class="result-row"><span>経験的パーセンタイル</span><strong>${fmt(pct,1)}%</strong></div>`;
       $('#heroScore').innerHTML=`${fmt(h,2)}<small></small>`;
       $('#heroMeta').textContent=`一括分析 · ${arr.length}人分`;
+    }else{
+      $('#heroScore').innerHTML='—<small></small>';
+      $('#heroMeta').textContent='一括分析結果';
     }
-    const sorted=[...arr].sort((a,b)=>a-b);
-    const median=arr.length%2?sorted[(arr.length-1)/2]:(sorted[arr.length/2-1]+sorted[arr.length/2])/2;
+
     $('#batchSummary').innerHTML=`
       <div class="result-row"><span>人数</span><strong>${arr.length.toLocaleString()} 人</strong></div>
       <div class="result-row"><span>平均</span><strong>${fmt(m,3)}</strong></div>
       <div class="result-row"><span>標準偏差（母標準偏差）</span><strong>${fmt(sd,3)}</strong></div>
-      <div class="result-row"><span>最高 / 最低</span><strong>${fmt(Math.max(...arr))} / ${fmt(Math.min(...arr))}</strong></div>
+      <div class="result-row"><span>最高点</span><strong>${fmt(Math.max(...arr),2)}</strong></div>
+      <div class="result-row"><span>最低点</span><strong>${fmt(Math.min(...arr),2)}</strong></div>
       <div class="result-row"><span>中央値</span><strong>${fmt(median,2)}</strong></div>
-      ${targetHtml}`;
+      ${targetHtml}<div class="note" style="margin-top:9px">1人分を1点として、そのまま集計しています。</div>`;
+
     const rows=arr.map((v,i)=>{
-      const h=sd>0?50+10*(v-m)/sd:NaN;
+      const h=sd>0?50+10*(v-m)/sd:50;
       return `<tr><td>${i+1}</td><td>${fmt(v,2)}</td><td><strong>${fmt(h,2)}</strong></td><td>${v-m>=0?'+':''}${fmt(v-m,2)}</td><td>${fmt(empiricalPercentile(v,arr),1)}%</td></tr>`;
     }).join('');
     $('#batchTable').innerHTML=rows;
     animateTableRows('#batchTable tr');
-    $('#distributionMeta').innerHTML=`<div class="metric">平均 ${fmt(m,2)}</div><div class="metric">SD ${fmt(sd,2)}</div><div class="metric">n=${arr.length}</div>`;
+    $('#distributionMeta').innerHTML=`<div class="metric">平均 ${fmt(m,2)}</div><div class="metric">SD ${fmt(sd,2)}</div><div class="metric">最低 ${fmt(Math.min(...arr),2)}</div><div class="metric">最高 ${fmt(Math.max(...arr),2)}</div><div class="metric">n=${arr.length}</div>`;
     drawDistribution(arr,target);
   }
   $('#analyzeBatch').addEventListener('click',analyzeBatch);
   $('#demoBatch').addEventListener('click',()=>{
+    batchScores.length=0;
     const demo=[42,51,58,61,64,67,69,72,73,74,76,77,79,81,82,83,85,87,88,92,95];
-    $('#batchInput').value=demo.join('\\n'); $('#batchTarget').value=82; analyzeBatch(); showToast('サンプルデータを読み込みました');
+    batchScores.push(...demo);
+    $('#batchTarget').value=82;
+    $('#batchLabel').value='サンプルテスト';
+    renderBatchScores();
+    analyzeBatch();
+    showToast('入力例を読み込みました');
   });
   $('#clearBatch').addEventListener('click',()=>{
-    $('#batchInput').value='';$('#batchTarget').value='';$('#batchLabel').value='';
-    $('#batchSummary').innerHTML='<div class="empty">得点データを入力してください。</div>';
+    batchScores.length=0;
+    $('#batchInput').value='';$('#batchEntry').value='';$('#batchTarget').value='';$('#batchLabel').value='';
+    $('#batchSummary').innerHTML='<div class="empty">得点を追加して「分析する」を押してください。</div>';
     $('#batchTable').innerHTML='<tr><td colspan="5"><div class="empty">分析結果がここに表示されます。</div></td></tr>';
-    $('#distributionMeta').innerHTML=''; drawDistribution([]);
+    $('#distributionMeta').innerHTML='';renderBatchScores();drawDistribution([]);
+    $('#heroScore').innerHTML='—<small></small>';$('#heroMeta').textContent='入力すると自動更新';
   });
   window.addEventListener('resize',()=>drawDistribution(lastBatch,Number($('#batchTarget').value)));
+  renderBatchScores();
 
   // Subjects
   const SUBJECT_SETS = {
